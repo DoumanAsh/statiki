@@ -37,7 +37,7 @@ macro_rules! declare_vec {
             ///Capacity.
             pub const CAPACITY: usize = $capacity;
 
-            ///Creates new instnace.
+            ///Creates new instance.
             pub const fn new() -> Self {
                 Vec {
                     inner: mem::MaybeUninit::uninit(),
@@ -51,16 +51,31 @@ macro_rules! declare_vec {
                 self.len
             }
 
-            fn as_elem(&self, pos: usize) -> *const T {
+            ///Returns pointer to underlying buffer.
+            pub fn as_ptr(&self) -> *const T {
                 unsafe {
-                    let ptr = self.inner.as_ptr() as *const T;
+                    self.inner.as_ptr() as *const T
+                }
+            }
+
+            ///Returns mutable pointer to underlying buffer.
+            pub fn as_mut_ptr(&mut self) -> *mut T {
+                unsafe {
+                    self.inner.as_mut_ptr() as *mut T
+                }
+            }
+
+
+            fn as_elem(&self, pos: usize) -> *const T {
+                let ptr = self.as_ptr();
+                unsafe {
                     ptr.offset(pos as isize)
                 }
             }
 
             fn as_mut_elem(&mut self, pos: usize) -> *mut T {
+                let ptr = self.as_mut_ptr();
                 unsafe {
-                    let ptr = self.inner.as_mut_ptr() as *mut T;
                     ptr.offset(pos as isize)
                 }
             }
@@ -120,6 +135,16 @@ macro_rules! declare_vec {
             ///Returns vector capacity.
             pub const fn capacity(&self) -> usize {
                 Self::CAPACITY
+            }
+
+            ///Sets new length of vector.
+            ///
+            ///# Notes:
+            ///
+            ///Panics in debug mode only when `new_len` is greater than CAPACITY.
+            pub unsafe fn set_len(&mut self, new_len: usize) {
+                debug_assert!(new_len <= self.capacity());
+                self.len = new_len;
             }
 
             #[inline]
