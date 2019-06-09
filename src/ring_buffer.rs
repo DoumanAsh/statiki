@@ -22,7 +22,6 @@
 #[macro_export]
 ///Generates `RingBuffer` with specified capacity
 macro_rules! declare_ring_buffer {
-
     ($capacity:expr) => {
         use core::{mem, ptr};
 

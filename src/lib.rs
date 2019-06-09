@@ -9,3 +9,4 @@
 #![cfg_attr(feature = "cargo-clippy", allow(clippy::style))]
 
 pub mod ring_buffer;
+pub mod vec;
