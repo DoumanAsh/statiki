@@ -184,7 +184,7 @@ macro_rules! declare_vec {
                 }
             }
 
-            ///Removes element at `index` by swapping it with last element, and popping out..
+            ///Removes element at `index` by swapping it with last element, and popping out.
             pub unsafe fn swap_remove_unchecked(&mut self, index: usize) -> T {
                 ptr::swap(self.as_mut_elem(index), self.as_mut_elem(self.len - 1));
                 self.pop_unchecked()
