@@ -5,7 +5,7 @@
 //!- [RingBuffer](ring_buffer/index.html)
 //!- [Vec](vec/index.html)
 
-#![cfg_attr(not(test), no_std)]
+#![cfg_attr(all(not(feature = "std"), not(test)), no_std)]
 #![warn(missing_docs)]
 #![cfg_attr(feature = "cargo-clippy", allow(clippy::style))]
 

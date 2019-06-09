@@ -345,6 +345,26 @@ macro_rules! declare_vec {
                 }
             }
         }
+
+        #[cfg(feature = "std")]
+        impl std::io::Write for Vec<u8> {
+            fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+                let write_len = core::cmp::min(self.capacity() - self.len(), buf.len());
+                let dest = self.as_mut_elem(self.len);
+                let src = buf.as_ptr();
+                unsafe {
+                    ptr::copy_nonoverlapping(src, dest, write_len);
+                }
+                self.len += write_len;
+
+                Ok(write_len)
+            }
+
+            #[inline]
+            fn flush(&mut self) -> std::io::Result<()> {
+                Ok(())
+            }
+        }
     }
 }
 
@@ -356,8 +376,33 @@ mod tests {
     use core::fmt::Write;
     declare_vec!(512);
 
+    #[cfg(feature = "std")]
     #[test]
-    fn test_queue() {
+    fn test_vec_write() {
+        use std::io::Write;
+
+        const SIZE: usize = 100;
+        let mut vec = Vec::new();
+        let data = [0u8; SIZE];
+
+        let full_write_num = vec.capacity() / SIZE;
+
+        for idx in 0..full_write_num {
+            let res = vec.write(&data).expect("To successfully write");
+            assert_eq!(res, SIZE);
+            assert_eq!(vec.len(), (idx+1) * SIZE);
+        }
+
+        let res = vec.write(&data).expect("To successfully write");
+        assert_eq!(res, vec.capacity() - full_write_num * SIZE);
+        assert_eq!(vec.len(), vec.capacity());
+
+        let res = vec.write(&data).expect("To successfully write");
+        assert_eq!(res, 0);
+    }
+
+    #[test]
+    fn test_vec() {
         let mut vec = Vec::new();
         assert_eq!(vec.capacity(), 512);
         assert!(vec.is_empty());
