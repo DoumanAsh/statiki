@@ -1,4 +1,23 @@
-//!Static Ring Buffer
+//!Static Circular Ring Buffer
+//!
+//!Once it reaches the end of its capacity, it starts over-writing elements from the beggining
+//!For simplicity sake it uses macro to generate appropriate code instead of generic integer hacks.
+//!See [API](struct.RingBuffer.html) of pre-generated `RingBuffer`.
+//!
+//!## Usage:
+//!
+//!```rust
+//!statiki::declare_ring_buffer!(512); //Creates RingBuffer with CAPACITY 512
+//!
+//!let mut queue = RingBuffer::new();
+//!assert_eq!(queue.capacity(), 512);
+//!assert!(queue.is_empty());
+//!
+//!queue.push(1);
+//!while !queue.is_empty() {
+//!    println!("Elem={}", queue.pop().expect("Element"));
+//!}
+//!```
 
 #[macro_export]
 ///Generates `RingBuffer` with specified capacity
@@ -7,7 +26,7 @@ macro_rules! declare_ring_buffer {
     ($capacity:expr) => {
         use core::{mem, ptr};
 
-        ///Automatically generated implementations of Ring buffer
+        ///Automatically generated Ring buffer
         pub struct RingBuffer<T> {
             inner: mem::MaybeUninit<[T; $capacity]>,
             start: usize,
