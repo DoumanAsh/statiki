@@ -1,4 +1,24 @@
 //!Static vector
+//!
+//!Implementation of `Vec` backed by static memory.
+//!Its resize capabilities is limited by specified `CAPACITY`
+//!
+//!See [API](struct.Vec.html) of pre-generated `Vec`.
+//!## Usage:
+//!
+//!```rust
+//!statiki::declare_vec!(512); //Creates Vec with CAPACITY 512
+//!
+//!let mut queue = Vec::new();
+//!assert_eq!(queue.capacity(), 512);
+//!assert!(queue.is_empty());
+//!
+//!queue.push(1);
+//!while !queue.is_empty() {
+//!    println!("Elem={}", queue.pop().expect("Element"));
+//!}
+//!```
+
 
 #[macro_export]
 ///Generates `Vec` with specified capacity
@@ -26,6 +46,7 @@ macro_rules! declare_vec {
             }
 
             #[inline(always)]
+            ///Returns vector's current length.
             pub fn len(&self) -> usize {
                 self.len
             }
@@ -156,7 +177,7 @@ macro_rules! declare_vec {
             ///## Note:
             ///
             ///Panics when `index` is out of bounds
-            pub unsafe fn swap_remove(&mut self, index: usize) -> T {
+            pub fn swap_remove(&mut self, index: usize) -> T {
                 assert!(index < self.len);
                 unsafe {
                     self.swap_remove_unchecked(index)
