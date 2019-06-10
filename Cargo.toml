@@ -1,10 +1,12 @@
 [package]
 name = "statiki"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Douman <douman@gmx.se>"]
 edition = "2018"
 description = "Static friendly data structures"
+readme = "README.md"
 repository = "https://github.com/DoumanAsh/statiki"
+documentation = "https://docs.rs/statiki"
 license = "Apache-2.0"
 keywords = ["static", "no-heap"]
 categories = [
@@ -19,4 +21,4 @@ docs = []
 std = []
 
 [package.metadata.docs.rs]
-features = ["docs"]
+features = ["docs", "std"]

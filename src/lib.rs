@@ -4,6 +4,10 @@
 //!
 //!- [RingBuffer](ring_buffer/index.html)
 //!- [Vec](vec/index.html)
+//!
+//!## Crate features
+//!
+//!- `std` Enables some std interfaces (e.g. `Write`) implementations.
 
 #![cfg_attr(all(not(feature = "std"), not(test)), no_std)]
 #![warn(missing_docs)]
