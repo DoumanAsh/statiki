@@ -5,3 +5,5 @@
 [![Documentation](https://docs.rs/statiki/badge.svg)](https://docs.rs/crate/statiki/)
 
 Static friendly data structures
+
+Minimum Rust version is 1.36

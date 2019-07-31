@@ -1,14 +1,14 @@
 strategy:
   matrix:
-    linux-stable:
+    linux:
       imageName: 'ubuntu-16.04'
-      rustup_toolchain: nightly
-    windows-stable:
+      rustup_toolchain: stable
+    windows:
       imageName: 'vs2017-win2016'
-      rustup_toolchain: nightly
-    mac-stable:
+      rustup_toolchain: stable
+    mac:
       imageName: 'macos-10.13'
-      rustup_toolchain: nightly
+      rustup_toolchain: stable
 
 pool:
   vmImage: $(imageName)
@@ -16,6 +16,7 @@ pool:
 steps:
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUSTUP_TOOLCHAIN
+      rustup update
       echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
     displayName: Install rust
     condition: ne( variables['Agent.OS'], 'Windows_NT' )
@@ -23,6 +24,7 @@ steps:
   - script: |
       curl -sSf -o rustup-init.exe https://win.rustup.rs
       rustup-init.exe -y --default-toolchain %RUSTUP_TOOLCHAIN%
+      rustup update
       echo "##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin"
     displayName: Windows install rust
     condition: eq( variables['Agent.OS'], 'Windows_NT' )
