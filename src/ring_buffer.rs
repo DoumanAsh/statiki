@@ -88,10 +88,14 @@ macro_rules! declare_ring_buffer {
 
             ///Removes all elements from the buffer.
             pub fn clear(&mut self) {
-                for _ in 0..self.size() {
-                    unsafe {
-                        self.pop_unchecked();
+                if mem::needs_drop::<T>() {
+                    for _ in 0..self.size() {
+                        unsafe {
+                            self.pop_unchecked();
+                        }
                     }
+                } else {
+                    self.read = self.write
                 }
             }
 
