@@ -17,5 +17,5 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-pub mod ring_buffer;
-pub mod vec;
+mod vec;
+pub use vec::Array;

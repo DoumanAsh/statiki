@@ -2,13 +2,13 @@
 //!
 use core::{mem, ptr, slice};
 
-///Automatically generated Vec
-pub struct Vec<T, const C: usize> {
+///Static array with `Vec`-like interface
+pub struct Array<T, const C: usize> {
     inner: mem::MaybeUninit<[T; C]>,
     len: usize,
 }
 
-impl<T, const C: usize> Vec<T, C> {
+impl<T, const C: usize> Array<T, C> {
     #[inline]
     ///Creates new empty instance
     pub const fn new() -> Self {
@@ -194,8 +194,8 @@ impl<T, const C: usize> Vec<T, C> {
 
     ///Resizes vector with provided `value`
     ///
-    ///If `new_len` is greater than `len`, the `Vec` is extended by the difference, with each
-    ///additional slot filled with value. If `new_len` is less than `len`, the `Vec` is simply
+    ///If `new_len` is greater than `len`, the `Array` is extended by the difference, with each
+    ///additional slot filled with value. If `new_len` is less than `len`, the `Array` is simply
     ///truncated.
     pub unsafe fn resize_unchecked(&mut self, new_len: usize, value: T) where T: Clone {
         match new_len > self.len() {
@@ -209,8 +209,8 @@ impl<T, const C: usize> Vec<T, C> {
     #[inline]
     ///Resizes vector with provided `value`
     ///
-    ///If `new_len` is greater than `len`, the `Vec` is extended by the difference, with each
-    ///additional slot filled with value. If `new_len` is less than `len`, the `Vec` is simply
+    ///If `new_len` is greater than `len`, the `Array` is extended by the difference, with each
+    ///additional slot filled with value. If `new_len` is less than `len`, the `Array` is simply
     ///truncated.
     ///
     ///## Note:
@@ -225,8 +225,8 @@ impl<T, const C: usize> Vec<T, C> {
 
     ///Resizes vector with default values.
     ///
-    ///If `new_len` is greater than `len`, the `Vec` is extended by the difference, with each
-    ///additional slot filled with value. If `new_len` is less than `len`, the `Vec` is simply
+    ///If `new_len` is greater than `len`, the `Array` is extended by the difference, with each
+    ///additional slot filled with value. If `new_len` is less than `len`, the `Array` is simply
     ///truncated.
     pub unsafe fn resize_default_unchecked(&mut self, new_len: usize) where T: Default {
         match new_len > self.len() {
@@ -240,8 +240,8 @@ impl<T, const C: usize> Vec<T, C> {
     #[inline]
     ///Resizes vector with default values.
     ///
-    ///If `new_len` is greater than `len`, the `Vec` is extended by the difference, with each
-    ///additional slot filled with value. If `new_len` is less than `len`, the `Vec` is simply
+    ///If `new_len` is greater than `len`, the `Array` is extended by the difference, with each
+    ///additional slot filled with value. If `new_len` is less than `len`, the `Array` is simply
     ///truncated.
     ///
     ///## Note:
@@ -253,16 +253,20 @@ impl<T, const C: usize> Vec<T, C> {
             self.resize_default_unchecked(new_len);
         }
     }
+
+    ///Fills `self` with elements by cloning `value`.
+    pub fn fill(&mut self, value: T) where T: Clone {
+    }
 }
 
-impl<T, const C: usize> Drop for Vec<T, C> {
+impl<T, const C: usize> Drop for Array<T, C> {
     #[inline]
     fn drop(&mut self) {
         self.clear();
     }
 }
 
-impl<T, const C: usize> core::ops::Deref for Vec<T, C> {
+impl<T, const C: usize> core::ops::Deref for Array<T, C> {
     type Target = [T];
 
     #[inline]
@@ -271,42 +275,42 @@ impl<T, const C: usize> core::ops::Deref for Vec<T, C> {
     }
 }
 
-impl<T, const C: usize> core::ops::DerefMut for Vec<T, C> {
+impl<T, const C: usize> core::ops::DerefMut for Array<T, C> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.as_mut_slice()
     }
 }
 
-impl<T, const C: usize> AsRef<Vec<T, C>> for Vec<T, C> {
+impl<T, const C: usize> AsRef<Array<T, C>> for Array<T, C> {
     #[inline]
     fn as_ref(&self) -> &Self {
         self
     }
 }
 
-impl<T, const C: usize> AsMut<Vec<T, C>> for Vec<T, C> {
+impl<T, const C: usize> AsMut<Array<T, C>> for Array<T, C> {
     #[inline]
     fn as_mut(&mut self) -> &mut Self {
         self
     }
 }
 
-impl<T, const C: usize> AsRef<[T]> for Vec<T, C> {
+impl<T, const C: usize> AsRef<[T]> for Array<T, C> {
     #[inline]
     fn as_ref(&self) -> &[T] {
         self
     }
 }
 
-impl<T, const C: usize> AsMut<[T]> for Vec<T, C> {
+impl<T, const C: usize> AsMut<[T]> for Array<T, C> {
     #[inline]
     fn as_mut(&mut self) -> &mut [T] {
         self
     }
 }
 
-impl<T: core::fmt::Debug, const C: usize> core::fmt::Debug for Vec<T, C> {
+impl<T: core::fmt::Debug, const C: usize> core::fmt::Debug for Array<T, C> {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         match self.len {
             0 => write!(f, "[]"),
@@ -326,7 +330,7 @@ impl<T: core::fmt::Debug, const C: usize> core::fmt::Debug for Vec<T, C> {
 }
 
 #[cfg(feature = "std")]
-impl<const C: usize> std::io::Write for Vec<u8, C> {
+impl<const C: usize> std::io::Write for Array<u8, C> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         let write_len = core::cmp::min(self.capacity() - self.len(), buf.len());
         let dest = self.as_mut_elem(self.len);
@@ -370,11 +374,11 @@ mod tests {
             }
         }
 
-        Vec::<Lolka, 512>::new();
+        Array::<Lolka, 512>::new();
 
         assert_eq!(COUNT.load(Ordering::Relaxed), 0);
 
-        let mut vec = Vec::<Lolka, 512>::new();
+        let mut vec = Array::<Lolka, 512>::new();
         vec.resize_default(500);
         assert_eq!(vec.len(), 500);
         vec.truncate(400);
@@ -390,7 +394,7 @@ mod tests {
         use std::io::Write;
 
         const SIZE: usize = 100;
-        let mut vec = Vec::<_, 512>::new();
+        let mut vec = Array::<_, 512>::new();
         let data = [0u8; SIZE];
 
         let full_write_num = vec.capacity() / SIZE;
@@ -411,7 +415,7 @@ mod tests {
 
     #[test]
     fn test_vec() {
-        let mut vec = Vec::<_, 512>::new();
+        let mut vec = Array::<_, 512>::new();
         assert_eq!(vec.capacity(), 512);
         assert!(vec.is_empty());
         assert_eq!(format!("{:?}", &vec), "[]");
