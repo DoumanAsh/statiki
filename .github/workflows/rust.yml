@@ -5,11 +5,7 @@ on: [push, pull_request]
 jobs:
   build:
 
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v1
@@ -23,16 +19,9 @@ jobs:
              curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal --default-toolchain stable
              echo ::add-path::$HOME/.cargo/bin
         fi
-    - name: Install Rust Windows
-      if: runner.os == 'Windows'
-      run: |
-        if (Get-Command "rustup" -ErrorAction SilentlyContinue) {
-            rustup update
-        } else {
-            Invoke-WebRequest https://static.rust-lang.org/rustup/dist/i686-pc-windows-gnu/rustup-init.exe -OutFile rustup-init.exe
-            ./rustup-init.exe -y --profile minimal --default-toolchain stable
-            echo ::add-path::%USERPROFILE%\.cargo\bin
-        }
+
+    - name: Install Valgrind
+      run: sudo apt-get install -y valgrind
 
     - name: Rust version
       run: |
@@ -43,4 +32,4 @@ jobs:
       run: cargo check
 
     - name: Test
-      run: cargo test --all --features std
+      run: CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER="valgrind" cargo test --all --features std

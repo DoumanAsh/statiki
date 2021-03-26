@@ -9,9 +9,13 @@
 //!
 //!- `std` Enables some std interfaces (e.g. `Write`) implementations.
 
-#![cfg_attr(all(not(feature = "std"), not(test)), no_std)]
+#![no_std]
+//#![deny(warnings)]
 #![warn(missing_docs)]
 #![cfg_attr(feature = "cargo-clippy", allow(clippy::style))]
+
+#[cfg(feature = "std")]
+extern crate std;
 
 pub mod ring_buffer;
 pub mod vec;
