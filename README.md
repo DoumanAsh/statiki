@@ -6,4 +6,4 @@
 
 Static friendly data structures
 
-Minimum Rust version is 1.36
+Minimum Rust version is 1.51
