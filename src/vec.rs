@@ -253,10 +253,6 @@ impl<T, const C: usize> Array<T, C> {
             self.resize_default_unchecked(new_len);
         }
     }
-
-    ///Fills `self` with elements by cloning `value`.
-    pub fn fill(&mut self, value: T) where T: Clone {
-    }
 }
 
 impl<T, const C: usize> Drop for Array<T, C> {
