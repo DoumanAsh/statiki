@@ -2,8 +2,7 @@
 //!
 //!## Available data structures
 //!
-//!- [RingBuffer](ring_buffer/index.html)
-//!- [Vec](vec/index.html)
+//!- [Array](vec/index.html)
 //!
 //!## Crate features
 //!
