@@ -41,7 +41,7 @@ impl<T, const C: usize> Array<T, C> {
     fn as_elem(&self, pos: usize) -> *const T {
         let ptr = self.as_ptr();
         unsafe {
-            ptr.offset(pos as isize)
+            ptr.add(pos)
         }
     }
 
@@ -49,7 +49,7 @@ impl<T, const C: usize> Array<T, C> {
     fn as_mut_elem(&mut self, pos: usize) -> *mut T {
         let ptr = self.as_mut_ptr();
         unsafe {
-            ptr.offset(pos as isize)
+            ptr.add(pos)
         }
     }
 
