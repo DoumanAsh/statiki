@@ -141,6 +141,7 @@ impl<T, const C: usize> Array<T, C> {
         self.len += 1;
     }
 
+    #[must_use]
     ///Appends element at the end.
     ///
     ///Returns `Some(T)` on capacity overflow
@@ -416,7 +417,7 @@ mod tests {
         assert!(vec.is_empty());
         assert_eq!(format!("{:?}", &vec), "[]");
 
-        vec.push(15);
+        assert!(vec.push(15).is_none());
         assert!(!vec.is_empty());
 
         let elem = vec.pop().expect("To get value");

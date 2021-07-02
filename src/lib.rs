@@ -2,11 +2,12 @@
 //!
 //!## Available data structures
 //!
-//!- [Array](vec/index.html)
+//!- [Array](struct.Array.html)
 //!
 //!## Crate features
 //!
-//!- `std` Enables some std interfaces (e.g. `Write`) implementations.
+//!- `std` - Enables some std interfaces (e.g. `Write`) implementations.
+//!- `serde` - Enables serialization/deserialization implementations.
 
 #![no_std]
 #![deny(warnings)]
@@ -18,3 +19,6 @@ extern crate std;
 
 mod vec;
 pub use vec::Array;
+
+#[cfg(feature = "serde")]
+mod serde;

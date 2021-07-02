@@ -7,3 +7,8 @@
 Static friendly data structures
 
 Minimum Rust version is 1.51
+
+## Crate features
+
+- `std` - Enables some std interfaces (e.g. `Write`) implementations.
+- `serde` - Enables serialization/deserialization implementations.
