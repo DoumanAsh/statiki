@@ -308,22 +308,49 @@ impl<T, const C: usize> AsMut<[T]> for Array<T, C> {
 }
 
 impl<T: core::fmt::Debug, const C: usize> core::fmt::Debug for Array<T, C> {
+    #[inline(always)]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        match self.len {
-            0 => write!(f, "[]"),
-            len => {
-                write!(f, "[")?;
-                for idx in 0..len-1 {
-                    let elem = unsafe {
-                        self.get_unchecked(idx)
-                    };
-
-                    write!(f, "{:?}, ", elem)?;
-                }
-                write!(f, "{:?}]", unsafe { self.get_unchecked(self.len-1) })
-            },
-        }
+        f.debug_list().entries(self.as_slice().iter()).finish()
     }
+}
+
+impl<T: Clone, const C: usize> Clone for Array<T, C> {
+    fn clone(&self) -> Self {
+        let mut result = Self {
+            inner: mem::MaybeUninit::uninit(),
+            len: self.len,
+
+        };
+
+        unsafe {
+            self.inner.as_ptr().copy_to_nonoverlapping(result.inner.as_mut_ptr(), 1);
+        }
+        result
+    }
+}
+
+impl<T: PartialEq, const C: usize> PartialEq for Array<T, C> {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice() == other.as_slice()
+    }
+}
+
+impl<T: PartialEq, const C: usize> PartialEq<[T]> for Array<T, C> {
+    #[inline]
+    fn eq(&self, other: &[T]) -> bool {
+        self.as_slice() == other
+    }
+}
+
+impl<T: PartialEq, const C: usize> PartialEq<&'_ [T]> for Array<T, C> {
+    #[inline]
+    fn eq(&self, other: &&[T]) -> bool {
+        self.as_slice() == *other
+    }
+}
+
+impl<T: Eq, const C: usize> Eq for Array<T, C> {
 }
 
 #[cfg(feature = "std")]
@@ -345,7 +372,6 @@ impl<const C: usize> std::io::Write for Array<u8, C> {
         Ok(())
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -408,6 +434,23 @@ mod tests {
 
         let res = vec.write(&data).expect("To successfully write");
         assert_eq!(res, 0);
+    }
+
+    #[test]
+    fn test_vec_clone() {
+        let mut vec = Array::<_, 512>::new();
+        for idx in 0..vec.capacity() {
+            assert!(vec.push(idx).is_none());
+        }
+
+        let mut cloned = vec.clone();
+        assert_eq!(cloned.len(), vec.len());
+        assert_eq!(cloned, vec);
+        assert_eq!(cloned, vec.as_slice());
+
+        for idx in (0..vec.capacity()).rev() {
+            assert_eq!(idx, cloned.pop().unwrap());
+        }
     }
 
     #[test]
