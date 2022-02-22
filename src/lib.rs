@@ -17,8 +17,8 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-mod vec;
-pub use vec::Array;
+mod array;
+pub use array::Array;
 
 #[cfg(feature = "serde")]
 mod serde;

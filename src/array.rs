@@ -373,153 +373,51 @@ impl<const C: usize> std::io::Write for Array<u8, C> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    extern crate alloc;
-    use alloc::format;
-    use alloc::string::String;
+pub struct ArrayConsumer<T, const C: usize> {
+    inner: Array<T, C>,
+    cursor: usize,
+}
 
-    use core::fmt::Write;
-    use core::sync::atomic::{AtomicUsize, Ordering};
+impl<T, const C: usize> Iterator for ArrayConsumer<T, C> {
+    type Item = T;
 
-    use super::*;
-
-    #[test]
-    fn test_destructor() {
-        static COUNT: AtomicUsize = AtomicUsize::new(0);
-        #[derive(Default)]
-        struct Lolka {
-        }
-
-        impl Drop for Lolka {
-            fn drop(&mut self) {
-                COUNT.fetch_add(1, Ordering::Relaxed);
-            }
-        }
-
-        Array::<Lolka, 512>::new();
-
-        assert_eq!(COUNT.load(Ordering::Relaxed), 0);
-
-        let mut vec = Array::<Lolka, 512>::new();
-        vec.resize_default(500);
-        assert_eq!(vec.len(), 500);
-        vec.truncate(400);
-        assert_eq!(vec.len(), 400);
-        assert_eq!(COUNT.load(Ordering::Relaxed), 100);
-        drop(vec);
-        assert_eq!(COUNT.load(Ordering::Relaxed), 500);
-    }
-
-    #[cfg(feature = "std")]
-    #[test]
-    fn test_vec_write() {
-        use std::io::Write;
-
-        const SIZE: usize = 100;
-        let mut vec = Array::<_, 512>::new();
-        let data = [0u8; SIZE];
-
-        let full_write_num = vec.capacity() / SIZE;
-
-        for idx in 0..full_write_num {
-            let res = vec.write(&data).expect("To successfully write");
-            assert_eq!(res, SIZE);
-            assert_eq!(vec.len(), (idx+1) * SIZE);
-        }
-
-        let res = vec.write(&data).expect("To successfully write");
-        assert_eq!(res, vec.capacity() - full_write_num * SIZE);
-        assert_eq!(vec.len(), vec.capacity());
-
-        let res = vec.write(&data).expect("To successfully write");
-        assert_eq!(res, 0);
-    }
-
-    #[test]
-    fn test_vec_clone() {
-        let mut vec = Array::<_, 512>::new();
-        for idx in 0..vec.capacity() {
-            assert!(vec.push(idx).is_none());
-        }
-
-        let mut cloned = vec.clone();
-        assert_eq!(cloned.len(), vec.len());
-        assert_eq!(cloned, vec);
-        assert_eq!(cloned, vec.as_slice());
-
-        for idx in (0..vec.capacity()).rev() {
-            assert_eq!(idx, cloned.pop().unwrap());
+    fn next(&mut self) -> Option<T> {
+        if self.cursor < self.inner.len() {
+            let result = unsafe {
+                ptr::read(self.inner.as_elem(self.cursor))
+            };
+            self.cursor += 1;
+            Some(result)
+        } else {
+            None
         }
     }
 
-    #[test]
-    fn test_vec() {
-        let mut vec = Array::<_, 512>::new();
-        assert_eq!(vec.capacity(), 512);
-        assert!(vec.is_empty());
-        assert_eq!(format!("{:?}", &vec), "[]");
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let size = self.inner.len() - self.cursor;
+        (size, Some(size))
+    }
+}
 
-        assert!(vec.push(15).is_none());
-        assert!(!vec.is_empty());
-
-        let elem = vec.pop().expect("To get value");
-        assert_eq!(15, elem);
-        assert!(vec.pop().is_none());
-
-        for idx in 0..vec.capacity() {
-            assert!(vec.push(idx).is_none());
+impl<T, const C: usize> Drop for ArrayConsumer<T, C> {
+    fn drop(&mut self) {
+        while let Some(_) = self.next() {
         }
-
-        assert!(vec.push(500).is_some());
-
-        for idx in (0..vec.capacity()).rev() {
-            let elem = vec.pop().expect("To get value");
-            assert_eq!(idx, elem);
+        unsafe {
+            self.inner.set_len(0);
         }
+    }
+}
 
-        assert!(vec.pop().is_none());
-        vec.clear();
+impl<T, const C: usize> IntoIterator for Array<T, C> {
+    type Item = T;
+    type IntoIter = ArrayConsumer<T, C>;
 
-        let mut expected_format = String::new();
-        let _ = write!(&mut expected_format, "[");
-        for idx in 0..vec.capacity() {
-            assert!(vec.push(idx).is_none());
-            let _ = write!(&mut expected_format, "{}, ", idx);
+    fn into_iter(self) -> Self::IntoIter {
+        ArrayConsumer {
+            inner: self,
+            cursor: 0,
         }
-        expected_format.pop();
-        expected_format.pop();
-        let _ = write!(&mut expected_format, "]");
-
-        assert_eq!(format!("{:?}", &vec), expected_format);
-
-        vec.resize(vec.capacity() / 2, 1);
-        assert_eq!(vec.len(), vec.capacity() / 2);
-
-        vec.clear();
-        assert!(vec.is_empty());
-        assert!(vec.pop().is_none());
-
-        vec.resize(vec.capacity(), 1);
-        assert_eq!(vec.len(), vec.capacity());
-
-        for _ in 0..vec.capacity() {
-            let item = vec.pop().expect("To get value");
-            assert_eq!(item, 1);
-        }
-
-        assert!(vec.is_empty());
-        assert!(vec.pop().is_none());
-
-        vec.resize_default(vec.capacity() / 2);
-        assert_eq!(vec.len(), vec.capacity() / 2);
-
-        for _ in 0..vec.capacity() / 2 {
-            let item = vec.pop().expect("To get value");
-            assert_eq!(item, 0);
-        }
-
-        assert!(vec.is_empty());
-        assert!(vec.pop().is_none());
     }
 }
