@@ -352,6 +352,13 @@ impl<T: PartialEq, const C: usize> PartialEq<&'_ [T]> for Array<T, C> {
 impl<T: Eq, const C: usize> Eq for Array<T, C> {
 }
 
+impl<T, const C: usize> Default for Array<T, C> {
+    #[inline(always)]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(feature = "std")]
 impl<const C: usize> std::io::Write for Array<u8, C> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
@@ -423,3 +430,4 @@ impl<T, const C: usize> IntoIterator for Array<T, C> {
         }
     }
 }
+
