@@ -19,6 +19,8 @@ extern crate std;
 
 mod array;
 pub use array::Array;
+mod ring;
+pub use ring::RingBuffer;
 
 #[cfg(feature = "serde")]
 mod serde;

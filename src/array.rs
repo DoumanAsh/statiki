@@ -30,7 +30,6 @@ impl<T, const C: usize> Array<T, C> {
         &self.inner as *const _ as *const _
     }
 
-
     #[inline(always)]
     ///Returns pointer to first element in underlying buffer.
     pub fn as_mut_ptr(&mut self) -> *mut T {
@@ -402,7 +401,9 @@ impl<T, const C: usize> Iterator for ArrayConsumer<T, C> {
 
 impl<T, const C: usize> Drop for ArrayConsumer<T, C> {
     fn drop(&mut self) {
-        while let Some(_) = self.next() {
+        if mem::needs_drop::<T>() {
+            while let Some(_) = self.next() {
+            }
         }
         unsafe {
             self.inner.set_len(0);
@@ -414,6 +415,7 @@ impl<T, const C: usize> IntoIterator for Array<T, C> {
     type Item = T;
     type IntoIter = ArrayConsumer<T, C>;
 
+    #[inline(always)]
     fn into_iter(self) -> Self::IntoIter {
         ArrayConsumer {
             inner: self,

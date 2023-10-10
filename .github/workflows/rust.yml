@@ -1,10 +1,26 @@
 name: Rust
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/rust.yml'
+      - 'src/**.rs'
+      - 'tests/**'
+      - 'Cargo.toml'
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - '**'
+    paths:
+      - '.github/workflows/rust.yml'
+      - 'src/**.rs'
+      - 'tests/**'
+      - 'Cargo.toml'
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -20,8 +36,10 @@ jobs:
              echo ::add-path::$HOME/.cargo/bin
         fi
 
-    - name: Install Valgrind
-      run: sudo apt-get install -y valgrind
+    - name: Install Miri
+      run: |
+        rustup toolchain install nightly
+        rustup +nightly component add miri
 
     - name: Rust version
       run: |
@@ -31,5 +49,10 @@ jobs:
     - name: Check default no_std
       run: cargo check
 
-    - name: Test
-      run: CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER="valgrind" cargo test --all --features std
+    - name: Check all features
+      run: cargo check --features serde,std
+
+    - name: Miri Test
+      run: |
+          cargo +nightly miri test --features std
+          cargo +nightly miri test --release --features std
