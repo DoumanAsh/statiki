@@ -3,6 +3,7 @@
 //!## Available data structures
 //!
 //!- [Array](struct.Array.html)
+//!- [RingBuffer](struct.RingBuffer.html)
 //!
 //!## Crate features
 //!

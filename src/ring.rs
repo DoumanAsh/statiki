@@ -1,23 +1,26 @@
 use core::{mem, ptr};
 
-///Automatically generated Ring buffer
+struct Assert<const C: usize>;
+
+impl<const C: usize> Assert<C> {
+    const RING_BUFFER_GOOD_CAPACITY: () = {
+        assert!(C != 0, "Capacity cannot be 0");
+        assert!((C & (C - 1)) == 0, "Capacity is not power of 2");
+    };
+}
+
+///Ring buffer
 pub struct RingBuffer<T, const C: usize> {
     inner: mem::MaybeUninit<[mem::MaybeUninit<T>; C]>,
     read: usize,
     write: usize,
 }
 
-impl<T, const C: usize> RingBuffer<T, C> {
-    const CAPACITY: usize = {
-        assert!(C != 0, "Capacity cannot be 0");
-        assert!((C & (C - 1)) == 0, "Capacity is not power of 2");
-        C
-    };
-
+impl<T, const CAPACITY: usize> RingBuffer<T, CAPACITY> {
     #[inline(always)]
     ///Creates new instance
     pub const fn new() -> Self {
-        let _ = Self::CAPACITY;
+        let _ = Assert::<CAPACITY>::RING_BUFFER_GOOD_CAPACITY;
 
         RingBuffer {
             inner: mem::MaybeUninit::uninit(),
@@ -51,12 +54,12 @@ impl<T, const C: usize> RingBuffer<T, C> {
     #[inline(always)]
     ///Retrieves buffer capacity.
     pub const fn capacity(&self) -> usize {
-        Self::CAPACITY
+        CAPACITY
     }
 
     #[inline(always)]
     const fn mask_idx(&self, idx: usize) -> usize {
-        idx & (Self::CAPACITY - 1)
+        idx & (CAPACITY - 1)
     }
 
     #[inline(always)]
