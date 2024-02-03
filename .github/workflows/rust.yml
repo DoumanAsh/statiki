@@ -20,39 +20,11 @@ on:
       - 'Cargo.toml'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Install Rust Unix
-      if: runner.os != 'Windows'
-      run: |
-        if rustup --version >/dev/null 2>&1; then
-            rustup update
-        else
-             curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal --default-toolchain stable
-             echo ::add-path::$HOME/.cargo/bin
-        fi
-
-    - name: Install Miri
-      run: |
-        rustup toolchain install nightly
-        rustup +nightly component add miri
-
-    - name: Rust version
-      run: |
-        cargo --version
-        rustc --version
-
-    - name: Check default no_std
-      run: cargo check
-
-    - name: Check all features
-      run: cargo check --features serde,std
-
-    - name: Miri Test
-      run: |
-          cargo +nightly miri test --features std
-          cargo +nightly miri test --release --features std
+  check:
+    if: github.event.pull_request.draft == false
+    uses: DoumanAsh/douman-ci/.github/workflows/rust.yml@master
+    with:
+      cargo-features: "std,serde"
+      cargo-no-features: true
+      valgrind: false
+      miri: true
