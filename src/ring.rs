@@ -1,4 +1,4 @@
-use core::mem;
+use core::{fmt, mem};
 use core::cell::UnsafeCell;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
@@ -13,7 +13,7 @@ impl<const C: usize> Assert<C> {
 
 ///Atomic ring buffer
 ///
-///Based on https://www.codeproject.com/Articles/43510/Lock-Free-Single-Producer-Single-Consumer-Circular
+///Based on <https://www.codeproject.com/Articles/43510/Lock-Free-Single-Producer-Single-Consumer-Circular>
 pub struct RingBuffer<T, const C: usize> {
     inner: [UnsafeCell<mem::MaybeUninit<T>>; C],
     read: AtomicUsize,
@@ -165,5 +165,29 @@ impl<T, const CAPACITY: usize> RingBuffer<T, CAPACITY> {
         } else {
             self.read.store(self.write.load(Ordering::Relaxed), Ordering::Relaxed);
         }
+    }
+}
+
+impl<T, const CAPACITY: usize> Drop for RingBuffer<T, CAPACITY> {
+    #[inline(always)]
+    fn drop(&mut self) {
+        self.clear();
+    }
+}
+
+impl<T, const CAPACITY: usize> Default for RingBuffer<T, CAPACITY> {
+    #[inline(always)]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<T, const CAPACITY: usize> fmt::Debug for RingBuffer<T, CAPACITY> {
+    #[inline(always)]
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("RingBuffer")
+           .field("capacity", &CAPACITY)
+           .field("size", &self.size())
+           .finish()
     }
 }
