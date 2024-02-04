@@ -41,4 +41,11 @@ fn test_ring_buffer() {
         let value = queue.pop().expect("Value");
         assert_eq!(value, expected_item);
     }
+
+    for idx in 0..queue.capacity() {
+        assert!(queue.try_push(idx).is_none());
+    }
+    assert!(!queue.is_empty());
+    assert_eq!(queue.size(), 512);
+    assert_eq!(queue.try_push(999), Some(999));
 }
