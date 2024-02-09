@@ -1,3 +1,5 @@
+//!Ring buffer implementation
+
 use core::{fmt, mem};
 use core::cell::UnsafeCell;
 use core::sync::atomic::{AtomicUsize, Ordering};
@@ -14,6 +16,8 @@ impl<const C: usize> Assert<C> {
 ///Atomic ring buffer
 ///
 ///Based on <https://www.codeproject.com/Articles/43510/Lock-Free-Single-Producer-Single-Consumer-Circular>
+///
+///When used directly, all operations are performed with relaxed ordering
 pub struct RingBuffer<T, const C: usize> {
     inner: [UnsafeCell<mem::MaybeUninit<T>>; C],
     read: AtomicUsize,
@@ -166,6 +170,12 @@ impl<T, const CAPACITY: usize> RingBuffer<T, CAPACITY> {
             self.read.store(self.write.load(Ordering::Relaxed), Ordering::Relaxed);
         }
     }
+
+    #[inline(always)]
+    ///Splits into thread safe producer and consumer
+    pub fn split(&mut self) -> (Producer<'_, T, CAPACITY>, Consumer<'_, T, CAPACITY>) {
+        (Producer(self), Consumer(self))
+    }
 }
 
 impl<T, const CAPACITY: usize> Drop for RingBuffer<T, CAPACITY> {
@@ -190,4 +200,42 @@ impl<T, const CAPACITY: usize> fmt::Debug for RingBuffer<T, CAPACITY> {
            .field("size", &self.size())
            .finish()
     }
+}
+
+///Consumer of Ring RingBuffer
+///
+///As name implies, it is only capable of consuming elements from buffer
+pub struct Consumer<'a, T, const N: usize>(&'a RingBuffer<T, N>);
+
+impl<'a, T, const N: usize> Consumer<'a, T, N> {
+    #[inline(always)]
+    ///Attempts to retrieve element from buffer.
+    pub fn pop(&self) -> Option<T> {
+        self.0.inner_pop(Ordering::Acquire, Ordering::Release)
+    }
+}
+
+unsafe impl<'a, T, const N: usize> Sync for Consumer<'a, T, N> {
+}
+unsafe impl<'a, T, const N: usize> Send for Consumer<'a, T, N> {
+}
+
+///Producer of Ring RingBuffer
+///
+///As name implies, it is only capable of putting elements onto buffer
+pub struct Producer<'a, T, const N: usize>(&'a RingBuffer<T, N>);
+
+impl<'a, T, const N: usize> Producer<'a, T, N> {
+    #[inline]
+    ///Attempts to push element onto buffer.
+    ///
+    ///In case of buffer being full, returns `value` otherwise `None` and element is added to the buffer
+    pub fn try_push(&self, value: T) -> Option<T> {
+        self.0.inner_push(value, Ordering::Acquire, Ordering::Release)
+    }
+}
+
+unsafe impl<'a, T, const N: usize> Sync for Producer<'a, T, N> {
+}
+unsafe impl<'a, T, const N: usize> Send for Producer<'a, T, N> {
 }

@@ -1,6 +1,33 @@
 type RingBuffer<T> = statiki::RingBuffer<T, 512>;
 
 #[test]
+fn test_ring_buffer_as_spcs() {
+    let mut queue = RingBuffer::<usize>::new();
+    let (producer, consumer) = queue.split();
+
+    std::thread::scope(move |scope| {
+        let consumer = scope.spawn(move || {
+            loop {
+                match consumer.pop() {
+                    Some(520) => break,
+                    _ => continue,
+                }
+            }
+        });
+
+        for idx in 0..=520 {
+            loop {
+                if producer.try_push(idx).is_none() {
+                    break;
+                }
+            }
+        }
+
+        consumer.join().expect("Success");
+    });
+}
+
+#[test]
 fn test_ring_buffer() {
     let mut queue = RingBuffer::<usize>::new();
     assert_eq!(queue.capacity(), 512);
