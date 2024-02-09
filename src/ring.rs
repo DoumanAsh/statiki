@@ -219,6 +219,12 @@ unsafe impl<'a, T, const N: usize> Sync for Consumer<'a, T, N> {
 }
 unsafe impl<'a, T, const N: usize> Send for Consumer<'a, T, N> {
 }
+impl<'a, T, const N: usize> fmt::Debug for Consumer<'a, T, N> {
+    #[inline(always)]
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(self.0, fmt)
+    }
+}
 
 ///Producer of Ring RingBuffer
 ///
@@ -238,4 +244,10 @@ impl<'a, T, const N: usize> Producer<'a, T, N> {
 unsafe impl<'a, T, const N: usize> Sync for Producer<'a, T, N> {
 }
 unsafe impl<'a, T, const N: usize> Send for Producer<'a, T, N> {
+}
+impl<'a, T, const N: usize> fmt::Debug for Producer<'a, T, N> {
+    #[inline(always)]
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(self.0, fmt)
+    }
 }
