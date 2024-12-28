@@ -3,7 +3,7 @@
 //!## Available data structures
 //!
 //!- [Array](struct.Array.html)
-//!- [RingBuffer](struct.RingBuffer.html)
+//!- [RingBuffer](ring/struct.RingBuffer.html)
 //!
 //!## Crate features
 //!
@@ -13,7 +13,7 @@
 #![no_std]
 #![deny(warnings)]
 #![warn(missing_docs)]
-#![cfg_attr(feature = "cargo-clippy", allow(clippy::style))]
+#![allow(clippy::style)]
 
 #[cfg(feature = "std")]
 extern crate std;
