@@ -157,9 +157,9 @@ impl<T, const C: usize> Array<T, C> {
     #[inline]
     ///Unconditionally retrieves element from vector.
     pub unsafe fn pop_unchecked(&mut self) -> T {
-        let result = ptr::read(self.as_elem(self.len - 1));
+        let result = ptr::read(self.as_elem(self.len.saturating_sub(1)));
 
-        self.len -= 1;
+        self.len = self.len.saturating_sub(1);
 
         result
     }
@@ -176,7 +176,9 @@ impl<T, const C: usize> Array<T, C> {
 
     ///Removes element at `index` by swapping it with last element, and popping out.
     pub unsafe fn swap_remove_unchecked(&mut self, index: usize) -> T {
-        ptr::swap(self.as_mut_elem(index), self.as_mut_elem(self.len - 1));
+        //use only single mut ptr otherwise Miri will complain
+        let base_ptr = self.as_mut_ptr();
+        ptr::swap(base_ptr.add(index), base_ptr.add(self.len.saturating_sub(1)));
         self.pop_unchecked()
     }
 
@@ -315,14 +317,11 @@ impl<T: core::fmt::Debug, const C: usize> core::fmt::Debug for Array<T, C> {
 
 impl<T: Clone, const C: usize> Clone for Array<T, C> {
     fn clone(&self) -> Self {
-        let mut result = Self {
-            inner: mem::MaybeUninit::uninit(),
-            len: self.len,
-
-        };
-
-        unsafe {
-            self.inner.as_ptr().copy_to_nonoverlapping(result.inner.as_mut_ptr(), 1);
+        let mut result = Self::new();
+        for item in self.iter() {
+            unsafe {
+                result.push_unchecked(item.clone())
+            }
         }
         result
     }

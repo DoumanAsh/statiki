@@ -25,6 +25,8 @@ pub struct RingBuffer<T, const C: usize> {
 }
 
 impl<T, const CAPACITY: usize> RingBuffer<T, CAPACITY> {
+    //This is only used for initialization, so not actual issue
+    #[allow(clippy::declare_interior_mutable_const)]
     const INIT: UnsafeCell<mem::MaybeUninit<T>> = UnsafeCell::new(mem::MaybeUninit::uninit());
 
     #[inline(always)]

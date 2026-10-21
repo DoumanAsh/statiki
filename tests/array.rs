@@ -78,7 +78,7 @@ fn test_array_write() {
 fn test_array_clone() {
     let mut array = Array::<_, 512>::new();
     for idx in 0..array.capacity() {
-        assert!(array.push(idx).is_none());
+        assert!(array.push(idx.to_string()).is_none());
     }
 
     let mut cloned = array.clone();
@@ -87,7 +87,7 @@ fn test_array_clone() {
     assert_eq!(cloned, array.as_slice());
 
     for idx in (0..array.capacity()).rev() {
-        assert_eq!(idx, cloned.pop().unwrap());
+        assert_eq!(idx.to_string(), cloned.pop().unwrap());
     }
 }
 
@@ -161,3 +161,18 @@ fn test_array() {
     assert!(array.pop().is_none());
 }
 
+#[test]
+fn test_array_swap_remove() {
+    let mut array = Array::<_, 12>::new();
+    let _ = array.push(1);
+    let _ = array.push(2);
+    let _ = array.push(3);
+    assert_eq!(array.swap_remove(0), 1);
+    assert_eq!(array[0], 3);
+    assert_eq!(array.len(), 2);
+    assert_eq!(array.swap_remove(0), 3);
+    assert_eq!(array[0], 2);
+    assert_eq!(array.len(), 1);
+    assert_eq!(array.swap_remove(0), 2);
+    assert_eq!(array.len(), 0);
+}
