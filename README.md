@@ -6,7 +6,7 @@
 
 Static friendly data structures
 
-Minimum Rust version is 1.51
+Minimum Rust version is 1.85
 
 ## Crate features
 

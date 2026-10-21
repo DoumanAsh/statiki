@@ -26,5 +26,6 @@ jobs:
     with:
       cargo-features: "std,serde"
       cargo-no-features: true
+      min-rustc-version: "1.85.0"
       valgrind: false
       miri: true

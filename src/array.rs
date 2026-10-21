@@ -32,12 +32,12 @@ impl<T, const C: usize> Array<T, C> {
 
     #[inline(always)]
     ///Returns pointer to first element in underlying buffer.
-    pub fn as_mut_ptr(&mut self) -> *mut T {
+    pub const fn as_mut_ptr(&mut self) -> *mut T {
         &mut self.inner as *mut _ as *mut _
     }
 
     #[inline(always)]
-    fn as_elem(&self, pos: usize) -> *const T {
+    const fn as_elem(&self, pos: usize) -> *const T {
         let ptr = self.as_ptr();
         unsafe {
             ptr.add(pos)
@@ -45,7 +45,7 @@ impl<T, const C: usize> Array<T, C> {
     }
 
     #[inline(always)]
-    fn as_mut_elem(&mut self, pos: usize) -> *mut T {
+    const fn as_mut_elem(&mut self, pos: usize) -> *mut T {
         let ptr = self.as_mut_ptr();
         unsafe {
             ptr.add(pos)
@@ -54,19 +54,23 @@ impl<T, const C: usize> Array<T, C> {
 
     #[inline]
     ///Retrieves reference to element without checking boundaries.
-    pub unsafe fn get_unchecked(&self, index: usize) -> &T {
-        &*self.as_elem(index)
+    pub const unsafe fn get_unchecked(&self, index: usize) -> &T {
+        unsafe {
+            &*self.as_elem(index)
+        }
     }
 
     #[inline]
     ///Retrieves mutable reference to element without checking boundaries.
-    pub unsafe fn get_unchecked_mut(&mut self, index: usize) -> &mut T {
-        &mut *self.as_mut_elem(index)
+    pub const unsafe fn get_unchecked_mut(&mut self, index: usize) -> &mut T {
+        unsafe {
+            &mut *self.as_mut_elem(index)
+        }
     }
 
     #[inline]
     ///Returns immutable slice with current elements
-    pub fn as_slice(&self) -> &[T] {
+    pub const fn as_slice(&self) -> &[T] {
         unsafe {
             slice::from_raw_parts(self.as_elem(0), self.len)
         }
@@ -74,7 +78,7 @@ impl<T, const C: usize> Array<T, C> {
 
     #[inline]
     ///Returns mutable slice with current elements
-    pub fn as_mut_slice(&mut self) -> &mut [T] {
+    pub const fn as_mut_slice(&mut self) -> &mut [T] {
         unsafe {
             slice::from_raw_parts_mut(self.as_mut_elem(0), self.len)
         }
@@ -122,7 +126,7 @@ impl<T, const C: usize> Array<T, C> {
     ///# Notes:
     ///
     ///Panics in debug mode only when `new_len` is greater than CAPACITY.
-    pub unsafe fn set_len(&mut self, new_len: usize) {
+    pub const unsafe fn set_len(&mut self, new_len: usize) {
         debug_assert!(new_len <= self.capacity());
         self.len = new_len;
     }
@@ -135,8 +139,10 @@ impl<T, const C: usize> Array<T, C> {
 
     #[inline]
     ///Appends element at the end, without checking capacity
-    pub unsafe fn push_unchecked(&mut self, value: T) {
-        ptr::write(self.as_mut_elem(self.len), value);
+    pub const unsafe fn push_unchecked(&mut self, value: T) {
+        unsafe {
+            ptr::write(self.as_mut_elem(self.len), value);
+        }
         self.len += 1;
     }
 
@@ -144,7 +150,7 @@ impl<T, const C: usize> Array<T, C> {
     ///Appends element at the end.
     ///
     ///Returns `Some(T)` on capacity overflow
-    pub fn push(&mut self, value: T) -> Option<T> {
+    pub const fn push(&mut self, value: T) -> Option<T> {
         match self.len == self.capacity() {
             true => Some(value),
             false => unsafe {
@@ -156,8 +162,10 @@ impl<T, const C: usize> Array<T, C> {
 
     #[inline]
     ///Unconditionally retrieves element from vector.
-    pub unsafe fn pop_unchecked(&mut self) -> T {
-        let result = ptr::read(self.as_elem(self.len.saturating_sub(1)));
+    pub const unsafe fn pop_unchecked(&mut self) -> T {
+        let result = unsafe {
+            ptr::read(self.as_elem(self.len.saturating_sub(1)))
+        };
 
         self.len = self.len.saturating_sub(1);
 
@@ -165,7 +173,7 @@ impl<T, const C: usize> Array<T, C> {
     }
 
     ///Pops element out of vector.
-    pub fn pop(&mut self) -> Option<T> {
+    pub const fn pop(&mut self) -> Option<T> {
         match self.len {
             0 => None,
             _ => unsafe {
@@ -175,11 +183,13 @@ impl<T, const C: usize> Array<T, C> {
     }
 
     ///Removes element at `index` by swapping it with last element, and popping out.
-    pub unsafe fn swap_remove_unchecked(&mut self, index: usize) -> T {
+    pub const unsafe fn swap_remove_unchecked(&mut self, index: usize) -> T {
         //use only single mut ptr otherwise Miri will complain
         let base_ptr = self.as_mut_ptr();
-        ptr::swap(base_ptr.add(index), base_ptr.add(self.len.saturating_sub(1)));
-        self.pop_unchecked()
+        unsafe {
+            ptr::swap(base_ptr.add(index), base_ptr.add(self.len.saturating_sub(1)));
+            self.pop_unchecked()
+        }
     }
 
     ///Removes element at `index` by swapping it with last element, and popping out.
@@ -187,7 +197,7 @@ impl<T, const C: usize> Array<T, C> {
     ///## Note:
     ///
     ///Panics when `index` is out of bounds
-    pub fn swap_remove(&mut self, index: usize) -> T {
+    pub const fn swap_remove(&mut self, index: usize) -> T {
         assert!(index < self.len);
         unsafe {
             self.swap_remove_unchecked(index)
@@ -202,7 +212,9 @@ impl<T, const C: usize> Array<T, C> {
     pub unsafe fn resize_unchecked(&mut self, new_len: usize, value: T) where T: Clone {
         match new_len > self.len() {
             true => while self.len() < new_len {
-                self.push_unchecked(value.clone());
+                unsafe {
+                    self.push_unchecked(value.clone());
+                }
             },
             false => self.truncate(new_len),
         }
@@ -233,7 +245,9 @@ impl<T, const C: usize> Array<T, C> {
     pub unsafe fn resize_default_unchecked(&mut self, new_len: usize) where T: Default {
         match new_len > self.len() {
             true => while self.len() < new_len {
-                self.push_unchecked(T::default());
+                unsafe {
+                    self.push_unchecked(T::default());
+                }
             },
             false => self.truncate(new_len),
         }

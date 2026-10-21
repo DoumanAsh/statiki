@@ -123,7 +123,9 @@ impl<T, const CAPACITY: usize> RingBuffer<T, CAPACITY> {
             self.write.fetch_add(1, Ordering::Relaxed)
         );
 
-        self.inner.get_unchecked(idx).get().write(mem::MaybeUninit::new(value))
+        unsafe {
+            self.inner.get_unchecked(idx).get().write(mem::MaybeUninit::new(value))
+        }
     }
 
     #[inline(always)]
@@ -156,7 +158,9 @@ impl<T, const CAPACITY: usize> RingBuffer<T, CAPACITY> {
             self.read.fetch_add(1, Ordering::Relaxed)
         );
 
-        (self.inner.get_unchecked(idx).get() as *const T).read()
+        unsafe {
+            (self.inner.get_unchecked(idx).get() as *const T).read()
+        }
     }
 
     #[inline(always)]
@@ -175,7 +179,7 @@ impl<T, const CAPACITY: usize> RingBuffer<T, CAPACITY> {
 
     #[inline(always)]
     ///Splits into thread safe producer and consumer
-    pub fn split(&mut self) -> (Producer<'_, T, CAPACITY>, Consumer<'_, T, CAPACITY>) {
+    pub const fn split(&mut self) -> (Producer<'_, T, CAPACITY>, Consumer<'_, T, CAPACITY>) {
         (Producer(self), Consumer(self))
     }
 }
