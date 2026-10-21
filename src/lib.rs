@@ -2,8 +2,8 @@
 //!
 //!## Available data structures
 //!
-//!- [Array](struct.Array.html)
-//!- [RingBuffer](ring/struct.RingBuffer.html)
+//!- [Array]
+//!- [RingBuffer]
 //!
 //!## Crate features
 //!
