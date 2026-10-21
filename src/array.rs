@@ -61,10 +61,34 @@ impl<T, const C: usize> Array<T, C> {
     }
 
     #[inline]
+    ///Retrieves reference to element if available
+    pub const fn get(&self, index: usize) -> Option<&T> {
+        if index >= self.len {
+            None
+        } else {
+            unsafe {
+                Some(self.get_unchecked(index))
+            }
+        }
+    }
+
+    #[inline]
     ///Retrieves mutable reference to element without checking boundaries.
     pub const unsafe fn get_unchecked_mut(&mut self, index: usize) -> &mut T {
         unsafe {
             &mut *self.as_mut_elem(index)
+        }
+    }
+
+    #[inline]
+    ///Retrieves mutable reference to element if available
+    pub const fn get_mut(&mut self, index: usize) -> Option<&mut T> {
+        if index >= self.len {
+            None
+        } else {
+            unsafe {
+                Some(self.get_unchecked_mut(index))
+            }
         }
     }
 

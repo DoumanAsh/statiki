@@ -169,10 +169,16 @@ fn test_array_swap_remove() {
     let _ = array.push(3);
     assert_eq!(array.swap_remove(0), 1);
     assert_eq!(array[0], 3);
+    assert_eq!(array.get(0), Some(&3));
+    assert_eq!(array.get_mut(0), Some(&mut 3));
     assert_eq!(array.len(), 2);
     assert_eq!(array.swap_remove(0), 3);
     assert_eq!(array[0], 2);
+    assert_eq!(array.get(0), Some(&2));
+    assert_eq!(array.get_mut(0), Some(&mut 2));
     assert_eq!(array.len(), 1);
     assert_eq!(array.swap_remove(0), 2);
     assert_eq!(array.len(), 0);
+    assert_eq!(array.get(0), None);
+    assert_eq!(array.get_mut(0), None);
 }
