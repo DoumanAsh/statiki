@@ -416,6 +416,7 @@ impl<const C: usize> std::io::Write for Array<u8, C> {
     }
 }
 
+///Iterator over [Array] returning owned element
 pub struct ArrayConsumer<T, const C: usize> {
     inner: Array<T, C>,
     cursor: usize,
@@ -443,6 +444,14 @@ impl<T, const C: usize> Iterator for ArrayConsumer<T, C> {
     }
 }
 
+impl<T, const C: usize> ExactSizeIterator for ArrayConsumer<T, C> {
+    #[inline(always)]
+    fn len(&self) -> usize {
+        self.inner.len() - self.cursor
+    }
+}
+
+
 impl<T, const C: usize> Drop for ArrayConsumer<T, C> {
     fn drop(&mut self) {
         if mem::needs_drop::<T>() {
@@ -467,4 +476,3 @@ impl<T, const C: usize> IntoIterator for Array<T, C> {
         }
     }
 }
-

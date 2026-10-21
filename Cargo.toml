@@ -1,6 +1,6 @@
 [package]
 name = "statiki"
-version = "0.6.1"
+version = "0.6.2"
 authors = ["Douman <douman@gmx.se>"]
 rust-version = "1.85"
 edition = "2024"

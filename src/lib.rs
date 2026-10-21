@@ -18,7 +18,7 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-mod array;
+pub mod array;
 pub use array::Array;
 pub mod ring;
 pub use ring::RingBuffer;
